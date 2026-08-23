@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Smile Coin Calculator 💜</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --purple: #8b5cf6;
+      --purple-dark: #6d28d9;
+      --purple-light: #ede9fe;
+      --pink: #ec4899;
+      --pink-light: #fce7f3;
+      --bg: #faf7ff;
+      --card: rgba(255, 255, 255, 0.92);
+      --text: #312447;
+      --muted: #8b7d9f;
+      --border: #eadff5;
+      --shadow: 0 20px 50px rgba(123, 76, 160, 0.15);
+    }
+
+    body {
+      min-height: 100vh;
+      font-family:
+        Inter,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, #fce7f3 0, transparent 28%),
+        radial-gradient(circle at 90% 15%, #ede9fe 0, transparent 30%),
+        radial-gradient(circle at 50% 100%, #f5d0fe 0, transparent 35%),
+        var(--bg);
+      padding: 25px 15px;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Floating decorations */
+
+    .decoration {
+      position: fixed;
+      pointer-events: none;
+      user-select: none;
+      opacity: 0.7;
+      z-index: 0;
+    }
+
+    .heart1 {
+      top: 8%;
+      left: 5%;
+      font-size: 32px;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .heart2 {
+      top: 20%;
+      right: 6%;
+      font-size: 25px;
+      animation: float 5s ease-in-out infinite reverse;
+    }
+
+    .sparkle1 {
+      bottom: 15%;
+      left: 7%;
+      font-size: 28px;
+      animation: spin 7s linear infinite;
+    }
+
+    .sparkle2 {
+      bottom: 8%;
+      right: 8%;
+      font-size: 22px;
+      animation: spin 8s linear infinite reverse;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) rotate(-5deg);
+      }
+      50% {
+        transform: translateY(-12px) rotate(5deg);
+      }
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Main card */
+
+    .calculator-card {
+      position: relative;
+      z-index: 1;
+      background: var(--card);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* Header */
+
+    .header {
+      position: relative;
+      padding: 32px 25px 28px;
+      text-align: center;
+      background:
+        linear-gradient(
+          135deg,
+          #8b5cf6 0%,
+          #a855f7 45%,
+          #ec4899 100%
+        );
+      color: white;
+    }
+
+    .header::after {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      right: -60px;
+      top: -70px;
+    }
+
+    .header::before {
+      content: "";
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      left: -40px;
+      bottom: -55px;
+    }
+
+    .coin-icon {
+      position: relative;
+      z-index: 1;
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #fff5b7, #ffd84d);
+      border: 5px solid rgba(255, 255, 255, 0.8);
+      box-shadow:
+        0 8px 20px rgba(88, 35, 115, 0.25),
+        inset 0 2px 4px rgba(255, 255, 255, 0.9);
+      font-size: 34px;
+    }
+
+    .header h1 {
+      position: relative;
+      z-index: 1;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      position: relative;
+      z-index: 1;
+      margin-top: 6px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    /* Price banner */
+
+    .price-banner {
+      margin: 22px 22px 0;
+      padding: 17px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #faf5ff, #fdf2f8);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .price-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .price-main {
+      margin-top: 5px;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--purple-dark);
+    }
+
+    .price-sub {
+      margin-top: 3px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .edit-price-btn {
+      margin-top: 12px;
+      padding: 7px 14px;
+      border: none;
+      border-radius: 999px;
+      color: var(--purple-dark);
+      background: white;
+      border: 1px solid #dfd1ef;
+      font-size: 12px;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    .edit-price-btn:hover {
+      background: var(--purple-light);
+      transform: translateY(-1px);
+    }
+
+    /* Calculator body */
+
+    .body {
+      padding: 24px 22px 28px;
+    }
+
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 5px;
+      background: #f4eff9;
+      border-radius: 15px;
+      margin-bottom: 22px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 11px 8px;
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    .mode-btn.active {
+      color: white;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      box-shadow: 0 5px 12px rgba(139, 92, 246, 0.25);
+    }
+
+    .input-title {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #655475;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .main-input {
+      width: 100%;
+      height: 62px;
+      padding: 0 70px 0 18px;
+      border-radius: 17px;
+      border: 2px solid var(--border);
+      outline: none;
+      color: var(--text);
+      background: white;
+      font-size: 22px;
+      font-weight: 750;
+      transition: 0.2s;
+    }
+
+    .main-input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    }
+
+    .input-unit {
+      position: absolute;
+      right: 17px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--purple);
+    }
+
+    /* Quick buttons */
+
+    .quick-section {
+      margin-top: 18px;
+    }
+
+    .quick-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 9px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+
+    .quick-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #6b587d;
+      padding: 9px 4px;
+      border-radius: 11px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    .quick-btn:hover {
+      border-color: #c4a7e7;
+      background: #faf5ff;
+      color: var(--purple-dark);
+      transform: translateY(-1px);
+    }
+
+    /* Swap */
+
+    .swap-row {
+      display: flex;
+      justify-content: center;
+      margin: 18px 0;
+    }
+
+    .swap-btn {
+      width: 43px;
+      height: 43px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ede9fe, #fce7f3);
+      color: var(--purple-dark);
+      font-size: 19px;
+      box-shadow: 0 5px 15px rgba(120, 80, 150, 0.12);
+      transition: 0.25s;
+    }
+
+    .swap-btn:hover {
+      transform: rotate(180deg);
+    }
+
+    /* Result */
+
+    .result-box {
+      margin-top: 22px;
+      padding: 20px;
+      border-radius: 20px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(139, 92, 246, 0.09),
+          rgba(236, 72, 153, 0.09)
+        );
+      border: 1px solid #e8daf6;
+      text-align: center;
+    }
+
+    .result-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .result-value {
+      margin-top: 6px;
+      color: var(--purple-dark);
+      font-size: 32px;
+      font-weight: 850;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .result-unit {
+      margin-top: 4px;
+      color: #9b82b0;
+      font-size: 13px;
+    }
+
+    .copy-btn {
+      margin-top: 13px;
+      border: none;
+      padding: 9px 17px;
+      border-radius: 999px;
+      background: white;
+      color: var(--purple-dark);
+      border: 1px solid #e0d1ef;
+      font-size: 12px;
+      font-weight: 750;
+      transition: 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--purple-light);
+    }
+
+    /* Formula */
+
+    .formula {
+      margin-top: 18px;
+      padding: 13px 15px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px dashed #ddcdec;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .formula strong {
+      color: var(--purple-dark);
+    }
+
+    /* Reset */
+
+    .reset-btn {
+      display: block;
+      margin: 18px auto 0;
+      border: none;
+      background: transparent;
+      color: #a38eb1;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .reset-btn:hover {
+      color: var(--pink);
+    }
+
+    /* Footer */
+
+    .footer {
+      padding: 0 20px 23px;
+      text-align: center;
+      color: #ae9cbb;
+      font-size: 11px;
+    }
+
+    /* Modal */
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(43, 25, 59, 0.45);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 400px;
+      padding: 26px;
+      border-radius: 25px;
+      background: white;
+      box-shadow: 0 25px 70px rgba(55, 30, 75, 0.3);
+      animation: modalIn 0.2s ease;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal h2 {
+      color: var(--purple-dark);
+      font-size: 21px;
+      margin-bottom: 5px;
+    }
+
+    .modal-description {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .modal-field {
+      margin-bottom: 15px;
+    }
+
+    .modal-field label {
+      display: block;
+      margin-bottom: 7px;
+      color: #665373;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .modal-input {
+      width: 100%;
+      height: 50px;
+      border: 2px solid var(--border);
+      border-radius: 13px;
+      outline: none;
+      padding: 0 14px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal-input:focus {
+      border-color: var(--purple);
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 20px;
+    }
+
+    .modal-cancel,
+    .modal-save {
+      height: 46px;
+      border-radius: 13px;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .modal-cancel {
+      border: 1px solid var(--border);
+      background: #faf8fc;
+      color: var(--muted);
+    }
+
+    .modal-save {
+      border: none;
+      color: white;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+    }
+
+    .modal-cancel:hover {
+      background: #f3eef7;
+    }
+
+    .modal-save:hover {
+      opacity: 0.92;
+    }
+
+    /* Toast */
+
+    .toast {
+      position: fixed;
+      z-index: 200;
+      left: 50%;
+      bottom: 25px;
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 11px 17px;
+      border-radius: 999px;
+      color: white;
+      background: #3b2b4b;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      font-size: 12px;
+      font-weight: 700;
+      transition: 0.25s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* Mobile */
+
+    @media (max-width: 450px) {
+      body {
+        padding: 10px;
+      }
+
+      .calculator-card {
+        border-radius: 25px;
+      }
+
+      .header {
+        padding: 27px 20px 24px;
+      }
+
+      .header h1 {
+        font-size: 25px;
+      }
+
+      .price-banner {
+        margin-left: 15px;
+        margin-right: 15px;
+      }
+
+      .body {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+
+      .quick-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .result-value {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Cute decorations -->
+  <div class="decoration heart1">💜</div>
+  <div class="decoration heart2">💗</div>
+  <div class="decoration sparkle1">✨</div>
+  <div class="decoration sparkle2">🌸</div>
+
+  <main class="app">
+
+    <section class="calculator-card">
+
+      <!-- Header -->
+      <header class="header">
+        <div class="coin-icon">😊</div>
+        <h1>Smile Coin Calculator</h1>
+        <p>Quick & cute coin conversion 💜</p>
+      </header>
+
+      <!-- Current price -->
+      <section class="price-banner">
+        <div class="price-label">Current Coin Rate</div>
+
+        <div class="price-main" id="priceDisplay">
+          1,000 Coins = 82,800 Ks
+        </div>
+
+        <div class="price-sub" id="singleCoinDisplay">
+          1 Smile Coin = 82.8 Ks
+        </div>
+
+        <button class="edit-price-btn" id="editPriceBtn">
+          ✏️ Edit Coin Price
+        </button>
+      </section>
+
+      <!-- Calculator -->
+      <section class="body">
+
+        <!-- Conversion mode -->
+        <div class="mode-tabs">
+          <button
+            class="mode-btn active"
+            id="coinToKsBtn"
+            type="button"
+          >
+            🪙 Coins → Ks
+          </button>
+
+          <button
+            class="mode-btn"
+            id="ksToCoinBtn"
+            type="button"
+          >
+            💵 Ks → Coins
+          </button>
+        </div>
+
+        <!-- Input -->
+        <label class="input-title" id="inputTitle">
+          Enter Smile Coins
+        </label>
+
+        <div class="input-wrapper">
+          <input
+            type="number"
+            id="mainInput"
+            class="main-input"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            placeholder="0"
+            autocomplete="off"
+          />
+
+          <span class="input-unit" id="inputUnit">
+            COINS
+          </span>
+        </div>
+
+        <!-- Quick amounts -->
+        <div class="quick-section">
+          <div class="quick-title" id="quickTitle">
+            Quick amounts
+          </div>
+
+          <div class="quick-grid" id="quickGrid">
+            <button class="quick-btn" data-value="100">100</button>
+            <button class="quick-btn" data-value="500">500</button>
+            <button class="quick-btn" data-value="1000">1,000</button>
+            <button class="quick-btn" data-value="5000">5,000</button>
+          </div>
+        </div>
+
+        <!-- Swap -->
+        <div class="swap-row">
+          <button
+            class="swap-btn"
+            id="swapBtn"
+            type="button"
+            title="Swap conversion"
+          >
+            ⇅
+          </button>
+        </div>
+
+        <!-- Result -->
+        <div class="result-box">
+          <div class="result-label">Result</div>
+
+          <div class="result-value" id="resultValue">
+            0
+          </div>
+
+          <div class="result-unit" id="resultUnit">
+            Myanmar Kyats
+          </div>
+
+          <button
+            class="copy-btn"
+            id="copyBtn"
+            type="button"
+          >
+            📋 Copy Result
+          </button>
+        </div>
+
+        <!-- Formula -->
+        <div class="formula" id="formula">
+          <strong>Formula:</strong>
+          Coins × 82.8 Ks = Total Ks
+        </div>
+
+        <button
+          class="reset-btn"
+          id="resetBtn"
+          type="button"
+        >
+          Reset Calculator
+        </button>
+
+      </section>
+
+      <footer class="footer">
+        Made with 💜 for easy Smile Coin calculations
+      </footer>
+
+    </section>
+
+  </main>
+
+  <!-- Edit price modal -->
+  <div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+      <h2>✏️ Edit Coin Price</h2>
+
+      <p class="modal-description">
+        Change the Smile Coin package and price.
+        The calculator will automatically update the conversion rate.
+      </p>
+
+      <div class="modal-field">
+        <label for="coinAmountInput">
+          Coin Amount
+        </label>
+
+        <input
+          type="number"
+          id="coinAmountInput"
+          class="modal-input"
+          min="0.000001"
+          step="any"
+          value="1000"
+        />
+      </div>
+
+      <div class="modal-field">
+        <label for="coinPriceInput">
+          Price in Ks
+        </label>
+
+        <input
+          type="number"
+          id="coinPriceInput"
+          class="modal-input"
+          min="0"
+          step="any"
+          value="82800"
+        />
+      </div>
+
+      <div class="modal-actions">
+        <button
+          class="modal-cancel"
+          id="cancelModalBtn"
+          type="button"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="modal-save"
+          id="savePriceBtn"
+          type="button"
+        >
+          Save Price
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* =========================================================
+       SMILE COIN CALCULATOR
+       ========================================================= */
+
+    const DEFAULT_COIN_AMOUNT = 1000;
+    const DEFAULT_COIN_PRICE = 82800;
+
+    let coinAmount =
+      Number(localStorage.getItem("smileCoinAmount")) ||
+      DEFAULT_COIN_AMOUNT;
+
+    let coinPrice =
+      Number(localStorage.getItem("smileCoinPrice")) ||
+      DEFAULT_COIN_PRICE;
+
+    let mode = "coinToKs";
+
+    /* Elements */
+
+    const priceDisplay =
+      document.getElementById("priceDisplay");
+
+    const singleCoinDisplay =
+      document.getElementById("singleCoinDisplay");
+
+    const mainInput =
+      document.getElementById("mainInput");
+
+    const inputTitle =
+      document.getElementById("inputTitle");
+
+    const inputUnit =
+      document.getElementById("inputUnit");
+
+    const resultValue =
+      document.getElementById("resultValue");
+
+    const resultUnit =
+      document.getElementById("resultUnit");
+
+    const formula =
+      document.getElementById("formula");
+
+    const quickTitle =
+      document.getElementById("quickTitle");
+
+    const quickGrid =
+      document.getElementById("quickGrid");
+
+    const coinToKsBtn =
+      document.getElementById("coinToKsBtn");
+
+    const ksToCoinBtn =
+      document.getElementById("ksToCoinBtn");
+
+    const editPriceBtn =
+      document.getElementById("editPriceBtn");
+
+    const swapBtn =
+      document.getElementById("swapBtn");
+
+    const resetBtn =
+      document.getElementById("resetBtn");
+
+    const copyBtn =
+      document.getElementById("copyBtn");
+
+    const modalOverlay =
+      document.getElementById("modalOverlay");
+
+    const coinAmountInput =
+      document.getElementById("coinAmountInput");
+
+    const coinPriceInput =
+      document.getElementById("coinPriceInput");
+
+    const cancelModalBtn =
+      document.getElementById("cancelModalBtn");
+
+    const savePriceBtn =
+      document.getElementById("savePriceBtn");
+
+    const toast =
+      document.getElementById("toast");
+
+
+    /* =========================================================
+       HELPERS
+       ========================================================= */
+
+    function formatNumber(value, maximumFractionDigits = 2) {
+      if (!Number.isFinite(value)) {
+        return "0";
+      }
+
+      return new Intl.NumberFormat("en-US", {
+        maximumFractionDigits
+      }).format(value);
+    }
+
+
+    function formatKs(value) {
+      return formatNumber(value, 2) + " Ks";
+    }
+
+
+    function getRate() {
+      if (coinAmount === 0) {
+        return 0;
+      }
+
+      return coinPrice / coinAmount;
+    }
+
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      clearTimeout(showToast.timer);
+
+      showToast.timer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1800);
+    }
+
+
+    /* =========================================================
+       UPDATE PRICE DISPLAY
+       ========================================================= */
+
+    function updatePriceDisplay() {
+      const rate = getRate();
+
+      priceDisplay.textContent =
+        `${formatNumber(coinAmount)} Coins = ${formatKs(coinPrice)}`;
+
+      singleCoinDisplay.textContent =
+        `1 Smile Coin = ${formatKs(rate)}`;
+    }
+
+
+    /* =========================================================
+       CALCULATE
+       ========================================================= */
+
+    function calculate() {
+      const input = Number(mainInput.value);
+
+      if (
+        mainInput.value === "" ||
+        !Number.isFinite(input) ||
+        input < 0
+      ) {
+        resultValue.textContent = "0";
+
+        if (mode === "coinToKs") {
+          resultUnit.textContent = "Myanmar Kyats";
+        } else {
+          resultUnit.textContent = "Smile Coins";
+        }
+
+        return;
+      }
+
+      const rate = getRate();
+
+      let result;
+
+      if (mode === "coinToKs") {
+        /*
+          Example:
+          1,000 coins × 82.8 Ks = 82,800 Ks
+        */
+
+        result = input * rate;
+
+        resultValue.textContent =
+          formatNumber(result, 2);
+
+        resultUnit.textContent =
+          "Myanmar Kyats (Ks)";
+
+      } else {
+
+        /*
+          Example:
+          82,800 Ks ÷ 82.8 = 1,000 coins
+        */
+
+        if (rate === 0) {
+          result = 0;
+        } else {
+          result = input / rate;
+        }
+
+        resultValue.textContent =
+          formatNumber(result, 2);
+
+        resultUnit.textContent =
+          "Smile Coins";
+      }
+    }
+
+
+    /* =========================================================
+       UPDATE MODE
+       ========================================================= */
+
+    function updateMode() {
+      if (mode === "coinToKs") {
+
+        coinToKsBtn.classList.add("active");
+        ksToCoinBtn.classList.remove("active");
+
+        inputTitle.textContent =
+          "Enter Smile Coins";
+
+        inputUnit.textContent =
+          "COINS";
+
+        resultUnit.textContent =
+          "Myanmar Kyats (Ks)";
+
+        quickTitle.textContent =
+          "Quick coin amounts";
+
+        quickGrid.innerHTML = `
+          <button class="quick-btn" data-value="100">100</button>
+          <button class="quick-btn" data-value="500">500</button>
+          <button class="quick-btn" data-value="1000">1,000</button>
+          <button class="quick-btn" data-value="5000">5,000</button>
+        `;
+
+        formula.innerHTML =
+          `<strong>Formula:</strong> Coins × ${formatNumber(getRate(), 4)} Ks = Total Ks`;
+
+      } else {
+
+        coinToKsBtn.classList.remove("active");
+        ksToCoinBtn.classList.add("active");
+
+        inputTitle.textContent =
+          "Enter Myanmar Kyats";
+
+        inputUnit.textContent =
+          "KS";
+
+        resultUnit.textContent =
+          "Smile Coins";
+
+        quickTitle.textContent =
+          "Quick Kyat amounts";
+
+        quickGrid.innerHTML = `
+          <button class="quick-btn" data-value="1000">1,000</button>
+          <button class="quick-btn" data-value="5000">5,000</button>
+          <button class="quick-btn" data-value="10000">10,000</button>
+          <button class="quick-btn" data-value="82800">82,800</button>
+        `;
+
+        formula.innerHTML =
+          `<strong>Formula:</strong> Ks ÷ ${formatNumber(getRate(), 4)} Ks = Smile Coins`;
+      }
+
+      attachQuickButtons();
+      calculate();
+    }
+
+
+    /* =========================================================
+       QUICK BUTTONS
+       ========================================================= */
+
+    function attachQuickButtons() {
+      const buttons =
+        document.querySelectorAll(".quick-btn");
+
+      buttons.forEach(button => {
+
+        button.addEventListener("click", () => {
+
+          mainInput.value =
+            button.dataset.value;
+
+          calculate();
+
+          mainInput.focus();
+        });
+
+      });
+    }
+
+
+    /* =========================================================
+       SWITCH MODE
+       ========================================================= */
+
+    function setMode(newMode) {
+      mode = newMode;
+
+      mainInput.value = "";
+
+      updateMode();
+
+      mainInput.focus();
+    }
+
+
+    /* =========================================================
+       SWAP
+       ========================================================= */
+
+    function swapMode() {
+
+      if (mode === "coinToKs") {
+        mode = "ksToCoin";
+      } else {
+        mode = "coinToKs";
+      }
+
+      mainInput.value = "";
+
+      updateMode();
+
+      showToast("🔄 Conversion switched");
+    }
+
+
+    /* =========================================================
+       EDIT PRICE MODAL
+       ========================================================= */
+
+    function openModal() {
+      coinAmountInput.value = coinAmount;
+      coinPriceInput.value = coinPrice;
+
+      modalOverlay.classList.add("show");
+
+      setTimeout(() => {
+        coinAmountInput.focus();
+        coinAmountInput.select();
+      }, 100);
+    }
+
+
+    function closeModal() {
+      modalOverlay.classList.remove("show");
+    }
+
+
+    function savePrice() {
+
+      const newCoinAmount =
+        Number(coinAmountInput.value);
+
+      const newCoinPrice =
+        Number(coinPriceInput.value);
+
+      if (
+        !Number.isFinite(newCoinAmount) ||
+        newCoinAmount <= 0
+      ) {
+        showToast("⚠️ Enter a valid coin amount");
+        return;
+      }
+
+      if (
+        !Number.isFinite(newCoinPrice) ||
+        newCoinPrice < 0
+      ) {
+        showToast("⚠️ Enter a valid price");
+        return;
+      }
+
+      coinAmount = newCoinAmount;
+      coinPrice = newCoinPrice;
+
+      localStorage.setItem(
+        "smileCoinAmount",
+        coinAmount
+      );
+
+      localStorage.setItem(
+        "smileCoinPrice",
+        coinPrice
+      );
+
+      updatePriceDisplay();
+      updateMode();
+
+      closeModal();
+
+      showToast("💜 Coin price updated!");
+    }
+
+
+    /* =========================================================
+       RESET
+       ========================================================= */
+
+    function resetCalculator() {
+
+      coinAmount = DEFAULT_COIN_AMOUNT;
+      coinPrice = DEFAULT_COIN_PRICE;
+
+      localStorage.setItem(
+        "smileCoinAmount",
+        coinAmount
+      );
+
+      localStorage.setItem(
+        "smileCoinPrice",
+        coinPrice
+      );
+
+      mode = "coinToKs";
+
+      mainInput.value = "";
+
+      updatePriceDisplay();
+      updateMode();
+
+      showToast("✨ Calculator reset");
+    }
+
+
+    /* =========================================================
+       COPY RESULT
+       ========================================================= */
+
+    async function copyResult() {
+
+      const value =
+        resultValue.textContent;
+
+      const unit =
+        resultUnit.textContent;
+
+      const text =
+        `${value} ${unit}`;
+
+      try {
+
+        await navigator.clipboard.writeText(text);
+
+        showToast("📋 Result copied!");
+
+      } catch (error) {
+
+        /*
+          Fallback for browsers that don't allow
+          navigator.clipboard.
+        */
+
+        const temp =
+          document.createElement("textarea");
+
+        temp.value = text;
+
+        document.body.appendChild(temp);
+
+        temp.select();
+
+        document.execCommand("copy");
+
+        temp.remove();
+
+        showToast("📋 Result copied!");
+      }
+    }
+
+
+    /* =========================================================
+       EVENTS
+       ========================================================= */
+
+    mainInput.addEventListener(
+      "input",
+      calculate
+    );
+
+
+    coinToKsBtn.addEventListener(
+      "click",
+      () => setMode("coinToKs")
+    );
+
+
+    ksToCoinBtn.addEventListener(
+      "click",
+      () => setMode("ksToCoin")
+    );
+
+
+    swapBtn.addEventListener(
+      "click",
+      swapMode
+    );
+
+
+    editPriceBtn.addEventListener(
+      "click",
+      openModal
+    );
+
+
+    cancelModalBtn.addEventListener(
+      "click",
+      closeModal
+    );
+
+
+    savePriceBtn.addEventListener(
+      "click",
+      savePrice
+    );
+
+
+    resetBtn.addEventListener(
+      "click",
+      resetCalculator
+    );
+
+
+    copyBtn.addEventListener(
+      "click",
+      copyResult
+    );
+
+
+    /* Close modal by clicking outside */
+
+    modalOverlay.addEventListener(
+      "click",
+      event => {
+
+        if (
+          event.target === modalOverlay
+        ) {
+          closeModal();
+        }
+
+      }
+    );
+
+
+    /* Escape closes modal */
+
+    document.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key === "Escape" &&
+          modalOverlay.classList.contains("show")
+        ) {
+          closeModal();
+        }
+
+      }
+    );
+
+
+    /* Enter inside modal saves */
+
+    coinAmountInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (event.key === "Enter") {
+          savePrice();
+        }
+
+      }
+    );
+
+
+    coinPriceInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (event.key === "Enter") {
+          savePrice();
+        }
+
+      }
+    );
+
+
+    /* =========================================================
+       INITIALIZE
+       ========================================================= */
+
+    updatePriceDisplay();
+    updateMode();
+  </script>
+
+</body>
+</html>
