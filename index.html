@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -247,6 +248,42 @@
     .edit-price-btn:hover {
       background: var(--purple-light);
       transform: translateY(-1px);
+    }
+
+    /* Brazil / PHP rate selector */
+
+    .rate-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 5px;
+      margin-top: 12px;
+      background: #f4eff9;
+      border-radius: 15px;
+    }
+
+    .rate-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 8px;
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 800;
+      transition: 0.2s;
+    }
+
+    .rate-btn.active {
+      color: white;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      box-shadow: 0 5px 12px rgba(139, 92, 246, 0.25);
+    }
+
+    .selected-rate-name {
+      margin-top: 13px;
+      color: var(--purple-dark);
+      font-size: 13px;
+      font-weight: 800;
     }
 
     /* Calculator body */
@@ -684,20 +721,34 @@
         <p>Quick & cute coin conversion 💜</p>
       </header>
 
-      <!-- Current price -->
+      <!-- Coin rate selector -->
       <section class="price-banner">
-        <div class="price-label">Current Coin Rate</div>
+        <div class="price-label">Select Coin Rate</div>
+
+        <div class="rate-tabs">
+          <button class="rate-btn active" id="brazilRateBtn" type="button">
+            🇧🇷 Brazil
+          </button>
+
+          <button class="rate-btn" id="phpRateBtn" type="button">
+            🇵🇭 PHP
+          </button>
+        </div>
+
+        <div class="selected-rate-name" id="selectedRateName">
+          🇧🇷 Brazil Coin Rate
+        </div>
 
         <div class="price-main" id="priceDisplay">
-          1,000 Coins = 82,800 Ks
+          1,000 Coins = 80,000 Ks
         </div>
 
         <div class="price-sub" id="singleCoinDisplay">
-          1 Smile Coin = 82.8 Ks
+          1 Smile Coin = 80 Ks
         </div>
 
         <button class="edit-price-btn" id="editPriceBtn">
-          ✏️ Edit Coin Price
+          ✏️ Edit Brazil Rate
         </button>
       </section>
 
@@ -886,22 +937,60 @@
   <script>
     /* =========================================================
        SMILE COIN CALCULATOR
+       TWO SEPARATE RATES: BRAZIL + PHP
        ========================================================= */
 
-    const DEFAULT_COIN_AMOUNT = 1000;
-    const DEFAULT_COIN_PRICE = 82800;
+    const DEFAULT_RATES = {
+      brazil: {
+        name: "Brazil",
+        flag: "🇧🇷",
+        coinAmount: 1000,
+        coinPrice: 80000
+      },
 
-    let coinAmount =
-      Number(localStorage.getItem("smileCoinAmount")) ||
-      DEFAULT_COIN_AMOUNT;
+      php: {
+        name: "PHP",
+        flag: "🇵🇭",
+        coinAmount: 1000,
+        coinPrice: 79000
+      }
+    };
 
-    let coinPrice =
-      Number(localStorage.getItem("smileCoinPrice")) ||
-      DEFAULT_COIN_PRICE;
+    let rates = {
+      brazil: {
+        ...DEFAULT_RATES.brazil,
+        coinAmount:
+          Number(localStorage.getItem("brazilCoinAmount")) ||
+          1000,
+        coinPrice:
+          Number(localStorage.getItem("brazilCoinPrice")) ||
+          80000
+      },
 
+      php: {
+        ...DEFAULT_RATES.php,
+        coinAmount:
+          Number(localStorage.getItem("phpCoinAmount")) ||
+          1000,
+        coinPrice:
+          Number(localStorage.getItem("phpCoinPrice")) ||
+          79000
+      }
+    };
+
+    let selectedRate = "brazil";
     let mode = "coinToKs";
 
     /* Elements */
+
+    const brazilRateBtn =
+      document.getElementById("brazilRateBtn");
+
+    const phpRateBtn =
+      document.getElementById("phpRateBtn");
+
+    const selectedRateName =
+      document.getElementById("selectedRateName");
 
     const priceDisplay =
       document.getElementById("priceDisplay");
@@ -974,6 +1063,25 @@
        HELPERS
        ========================================================= */
 
+    function getCurrentRate() {
+      return rates[selectedRate];
+    }
+
+
+    function getRate() {
+      const current = getCurrentRate();
+
+      if (current.coinAmount <= 0) {
+        return 0;
+      }
+
+      // 1 Smile Coin rate = total package price ÷ total coins
+      // Brazil: 80,000 ÷ 1,000 = 80 Ks
+      // PHP:    79,000 ÷ 1,000 = 79 Ks
+      return current.coinPrice / current.coinAmount;
+    }
+
+
     function formatNumber(value, maximumFractionDigits = 2) {
       if (!Number.isFinite(value)) {
         return "0";
@@ -990,15 +1098,6 @@
     }
 
 
-    function getRate() {
-      if (coinAmount === 0) {
-        return 0;
-      }
-
-      return coinPrice / coinAmount;
-    }
-
-
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add("show");
@@ -1012,17 +1111,75 @@
 
 
     /* =========================================================
+       SAVE RATE
+       ========================================================= */
+
+    function saveRate(rateKey) {
+      const rate = rates[rateKey];
+
+      localStorage.setItem(
+        `${rateKey}CoinAmount`,
+        rate.coinAmount
+      );
+
+      localStorage.setItem(
+        `${rateKey}CoinPrice`,
+        rate.coinPrice
+      );
+    }
+
+
+    /* =========================================================
        UPDATE PRICE DISPLAY
        ========================================================= */
 
     function updatePriceDisplay() {
+      const current = getCurrentRate();
       const rate = getRate();
 
+      selectedRateName.textContent =
+        `${current.flag} ${current.name} Coin Rate`;
+
       priceDisplay.textContent =
-        `${formatNumber(coinAmount)} Coins = ${formatKs(coinPrice)}`;
+        `${formatNumber(current.coinAmount)} Coins = ${formatKs(current.coinPrice)}`;
 
       singleCoinDisplay.textContent =
         `1 Smile Coin = ${formatKs(rate)}`;
+
+      editPriceBtn.textContent =
+        `✏️ Edit ${current.name} Rate`;
+
+      brazilRateBtn.classList.toggle(
+        "active",
+        selectedRate === "brazil"
+      );
+
+      phpRateBtn.classList.toggle(
+        "active",
+        selectedRate === "php"
+      );
+    }
+
+
+    /* =========================================================
+       SELECT RATE
+       ========================================================= */
+
+    function setSelectedRate(rateKey) {
+      if (!rates[rateKey]) {
+        return;
+      }
+
+      selectedRate = rateKey;
+
+      mainInput.value = "";
+
+      updatePriceDisplay();
+      updateMode();
+
+      showToast(
+        `${rates[rateKey].flag} ${rates[rateKey].name} rate selected`
+      );
     }
 
 
@@ -1041,7 +1198,7 @@
         resultValue.textContent = "0";
 
         if (mode === "coinToKs") {
-          resultUnit.textContent = "Myanmar Kyats";
+          resultUnit.textContent = "Myanmar Kyats (Ks)";
         } else {
           resultUnit.textContent = "Smile Coins";
         }
@@ -1054,9 +1211,13 @@
       let result;
 
       if (mode === "coinToKs") {
+
         /*
-          Example:
-          1,000 coins × 82.8 Ks = 82,800 Ks
+          Example - Brazil:
+          76 coins × 80 Ks = 6,080 Ks
+
+          Example - PHP:
+          76 coins × 79 Ks = 6,004 Ks
         */
 
         result = input * rate;
@@ -1070,15 +1231,16 @@
       } else {
 
         /*
-          Example:
-          82,800 Ks ÷ 82.8 = 1,000 coins
+          Example - Brazil:
+          80,000 Ks ÷ 80 = 1,000 coins
+
+          Example - PHP:
+          79,000 Ks ÷ 79 = 1,000 coins
         */
 
-        if (rate === 0) {
-          result = 0;
-        } else {
-          result = input / rate;
-        }
+        result = rate === 0
+          ? 0
+          : input / rate;
 
         resultValue.textContent =
           formatNumber(result, 2);
@@ -1138,11 +1300,16 @@
         quickTitle.textContent =
           "Quick Kyat amounts";
 
+        const currentPrice =
+          getCurrentRate().coinPrice;
+
         quickGrid.innerHTML = `
           <button class="quick-btn" data-value="1000">1,000</button>
           <button class="quick-btn" data-value="5000">5,000</button>
           <button class="quick-btn" data-value="10000">10,000</button>
-          <button class="quick-btn" data-value="82800">82,800</button>
+          <button class="quick-btn" data-value="${currentPrice}">
+            ${formatNumber(currentPrice)}
+          </button>
         `;
 
         formula.innerHTML =
@@ -1218,8 +1385,13 @@
        ========================================================= */
 
     function openModal() {
-      coinAmountInput.value = coinAmount;
-      coinPriceInput.value = coinPrice;
+      const current = getCurrentRate();
+
+      coinAmountInput.value =
+        current.coinAmount;
+
+      coinPriceInput.value =
+        current.coinPrice;
 
       modalOverlay.classList.add("show");
 
@@ -1259,25 +1431,22 @@
         return;
       }
 
-      coinAmount = newCoinAmount;
-      coinPrice = newCoinPrice;
+      rates[selectedRate].coinAmount =
+        newCoinAmount;
 
-      localStorage.setItem(
-        "smileCoinAmount",
-        coinAmount
-      );
+      rates[selectedRate].coinPrice =
+        newCoinPrice;
 
-      localStorage.setItem(
-        "smileCoinPrice",
-        coinPrice
-      );
+      saveRate(selectedRate);
 
       updatePriceDisplay();
       updateMode();
 
       closeModal();
 
-      showToast("💜 Coin price updated!");
+      showToast(
+        `${rates[selectedRate].flag} ${rates[selectedRate].name} rate updated!`
+      );
     }
 
 
@@ -1287,27 +1456,27 @@
 
     function resetCalculator() {
 
-      coinAmount = DEFAULT_COIN_AMOUNT;
-      coinPrice = DEFAULT_COIN_PRICE;
+      rates = {
+        brazil: {
+          ...DEFAULT_RATES.brazil
+        },
 
-      localStorage.setItem(
-        "smileCoinAmount",
-        coinAmount
-      );
+        php: {
+          ...DEFAULT_RATES.php
+        }
+      };
 
-      localStorage.setItem(
-        "smileCoinPrice",
-        coinPrice
-      );
+      saveRate("brazil");
+      saveRate("php");
 
+      selectedRate = "brazil";
       mode = "coinToKs";
-
       mainInput.value = "";
 
       updatePriceDisplay();
       updateMode();
 
-      showToast("✨ Calculator reset");
+      showToast("✨ Both rates reset");
     }
 
 
@@ -1317,6 +1486,8 @@
 
     async function copyResult() {
 
+      const current = getCurrentRate();
+
       const value =
         resultValue.textContent;
 
@@ -1324,7 +1495,7 @@
         resultUnit.textContent;
 
       const text =
-        `${value} ${unit}`;
+        `${current.flag} ${current.name}: ${value} ${unit}`;
 
       try {
 
@@ -1333,11 +1504,6 @@
         showToast("📋 Result copied!");
 
       } catch (error) {
-
-        /*
-          Fallback for browsers that don't allow
-          navigator.clipboard.
-        */
 
         const temp =
           document.createElement("textarea");
@@ -1364,6 +1530,18 @@
     mainInput.addEventListener(
       "input",
       calculate
+    );
+
+
+    brazilRateBtn.addEventListener(
+      "click",
+      () => setSelectedRate("brazil")
+    );
+
+
+    phpRateBtn.addEventListener(
+      "click",
+      () => setSelectedRate("php")
     );
 
 
@@ -1421,9 +1599,7 @@
       "click",
       event => {
 
-        if (
-          event.target === modalOverlay
-        ) {
+        if (event.target === modalOverlay) {
           closeModal();
         }
 
